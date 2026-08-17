@@ -1,0 +1,142 @@
+---
+description: Dateistruktur, Utility-Contract, Init/Cleanup, Fehlerpfade und Definition of Done für neue wl-Utilities
+globs: src/**
+alwaysApply: false
+---
+
+# Neue Utility bauen
+
+Zuerst `.cursor/rules/wl-attribute-schema.mdc` befolgen. Diese Regel beschreibt Dateien, Contract und Abnahme.
+
+## Gate: ist das überhaupt eine Utility?
+
+Alle sechs Punkte müssen zutreffen, sonst gehört die Anforderung nicht in diese Library:
+
+1. Vollständig über Attribute steuerbar, ohne JS-Aufruf.
+2. Kennt keine Projekt-Domäne: keine fixen Klassennamen, Texte, IDs oder Kundenlogik.
+3. Braucht maximal 6 Optionen.
+4. Nutzt nur Browser-APIs, keine Dependency.
+5. Ändert bestehendes Markup nicht strukturell (keine Umsortierung, kein Ersetzen, kein Entfernen).
+6. Ist auf mindestens drei unterschiedlichen Projekten sinnvoll.
+
+Keine Utility: Third-Party-Wrapper (Cookie-Banner, Analytics, Chat), Formular-/API-Integrationen, eigene Rendering-Engines (Slider, Layout), CMS-Schwergewichte (Filter, Sort, Load-More), Workarounds für Webflow-Bugs, alles was CSS oder Design-Tokens mitbringt.
+
+## Dateistruktur (exakt so)
+
+```
+src/
+  core/
+    attributes.ts  # Attributnamen, Token-Listen
+    options.ts     # Option-Helfer + Coercion + readOptions
+    instances.ts   # Rollen-/Scope-Auflösung, scan, destroy, Idempotenz
+    observer.ts    # der eine MutationObserver
+    bootstrap.ts   # start(), window.wl, VERSION
+    a11y.ts        # ensureFocusable, ensureId, onActivate, announce, prefersReducedMotion
+    errors.ts      # warn(), markError()
+    events.ts      # emit()
+    index.ts       # alles, was Utilities importieren dürfen
+  utilities/
+    <name>/
+      index.ts     # defineUtility(...) als Default-Export
+      README.md    # Attributtabelle, Beispiel, Events, Fehlercodes
+      <name>.test.ts
+  index.ts         # register(<utility>) — neue Utility hier eintragen
+dist/wl.min.js     # Build-Artefakt, ein Bundle (committen, jsDelivr liefert es aus)
+```
+
+`<name>` ist identisch mit dem Utility-Token im Attribut. Ordner `count` bedeutet Attribute `wl-count…`.
+Utilities importieren ausschließlich aus `../../core`, nie aus einzelnen Core-Dateien und nie aus einer anderen Utility.
+
+## Contract
+
+```ts
+import { defineUtility, ms, num, oneOf, required } from '../../core';
+
+export default defineUtility({
+  name: 'count',
+  roles: { root: {} },                       // weitere: trigger: { required: true }, item: { many: true }
+  options: { to: num(required), duration: ms(1200) },
+  init({ root, parts, options, fail, emit }) {
+    return () => {/* Cleanup, siehe unten */};
+  },
+});
+```
+
+Option-Helfer: `str`, `num`, `ms`, `bool`, `list`, `cls`, `oneOf(values, default)`. Pflicht wird mit `required` markiert.
+Rollen-Flags: `{ required: true }` erzwingt das Element, `{ many: true }` liefert ein Array. `parts` ist danach typisiert:
+Einzelrollen sind `HTMLElement | null`, Pflichtrollen `HTMLElement`, `many`-Rollen `HTMLElement[]`.
+
+Verboten in `src/utilities/**`:
+
+- `document.querySelector`, `getAttribute`, eigene Attribut-Namen im Code — der Core liefert `parts` und `options`.
+- `DOMContentLoaded`, `load`, `setTimeout`-Warteschleifen für Ready-State.
+- eigener `MutationObserver`, eigene Idempotenz-Marker, globaler Modul-State über Instanzen hinweg.
+- `Webflow.push`, `ix2`, Zugriff auf `w-…`-Klassen.
+- injizierte `<style>`-Tags oder Stylesheets.
+
+```ts
+// ❌ FALSCH
+const root = document.querySelector('[wl-count="root"]');
+const to = Number(root.getAttribute('wl-count-to'));
+
+// ✅ RICHTIG
+init({ root, options }) { animate(root, options.to); }
+```
+
+## Init, Cleanup, Idempotenz
+
+- Init läuft pro Instanz. Der Core verhindert Doppel-Init über `wl-init`; die Utility prüft nichts selbst.
+- Cleanup-Funktion ist **Pflicht**, sobald Listener oder Observer außerhalb des Roots registriert werden (`window`, `document`, `IntersectionObserver`, `ResizeObserver`, `requestAnimationFrame`-Loops, Timer). Der Core ruft sie bei Entfernung des Roots und bei `wl.destroy()`.
+- Listener innerhalb des Root-Subtrees brauchen kein Cleanup.
+- Init muss ohne Layout-Annahmen funktionieren: das Element kann versteckt, in einem Tab oder in einer noch leeren CMS-Liste stecken.
+
+## Markup, Klassen, Styles
+
+- Erlaubt: Klassen setzen, Attribute setzen, Textinhalt setzen, eigene additive A11y-Hilfselemente anlegen (sr-only Live-Region).
+- Erlaubt: unvermeidbare Inline-Styles, aber nur an Elementen, die die Utility per Attribut zugewiesen bekam oder selbst erzeugt hat, und in der README dokumentiert (z. B. `height` für eine Accordion-Animation).
+- Verboten: Stylesheets injizieren, bestehende Elemente umsortieren, ersetzen, entfernen, Klassen fremder Systeme (Client-First, Relume, Finsweet) voraussetzen.
+
+## Fehlerpfade
+
+Pflichtoptionen und Pflichtrollen prüft der Core selbst und erzeugt `missing-<name>`, `invalid-<name>`, `missing-<rolle>`,
+`duplicate-<rolle>`, `unknown-role`, `unknown-option`, `option-on-part` und `init-failed`. Diese Codes darf eine Utility nicht nachbauen.
+
+`instance.fail(code, message)` ist für Fälle, die nur die Utility kennt — etwa `copy:no-source`, wenn weder Option `value`
+noch Rolle `source` vorhanden ist. Codes sind kebab-case und in der README gelistet. Nach `fail` bricht die Utility ihre Arbeit ab.
+
+## Befehle
+
+```bash
+pnpm typecheck   # tsc --noEmit
+pnpm test        # vitest run (jsdom)
+pnpm build       # esbuild -> dist/wl.min.js, gibt min und min+gzip aus
+pnpm check       # alle drei
+```
+
+## README-Pflichtinhalt pro Utility
+
+1. Ein Satz, was die Utility tut.
+2. Rollen-Tabelle: Rolle, Pflicht/optional, wo sie sitzt.
+3. Options-Tabelle: Attribut, Typ, Pflicht, Default, Beispielwert.
+4. Ein vollständiges Copy-Paste-HTML-Beispiel, das ohne Änderung funktioniert.
+5. Events und Fehlercodes.
+6. Bekannte Grenzen (z. B. gesetzte Inline-Styles).
+
+## Definition of Done — ohne alle Punkte gilt die Utility als nicht fertig
+
+- [ ] Gate oben durchlaufen und bestanden
+- [ ] Ordner `src/utilities/<name>/` mit `index.ts`, `README.md`, `<name>.test.ts`
+- [ ] Utility-Token ist ein Token, kollisionsfrei zu bestehenden Utilities
+- [ ] Rollenliste enthält `root`; alle Optionen nur am Root; maximal 6 Optionen
+- [ ] Kein verbotenes API aus der Liste oben verwendet
+- [ ] Cleanup zurückgegeben, wenn Listener/Observer/Timer außerhalb des Root-Subtrees
+- [ ] Zweiter Init am gleichen Element ist nachweislich ein No-op
+- [ ] Jede Pflichtoption und Pflichtrolle hat Fehlerpfad mit dokumentiertem Code
+- [ ] A11y-Prüfliste aus `.cursor/rules/wl-a11y.mdc` abgearbeitet
+- [ ] `prefers-reduced-motion: reduce` liefert sofort den Endzustand, falls animiert
+- [ ] Zero Dependencies; Utility trägt < 2 KB min+gzip zum Bundle bei
+- [ ] Vitest deckt ab: Options-Parsing inklusive ungültiger Werte, Kernlogik, mindestens ein Fehlerpfad
+- [ ] README vollständig nach Pflichtinhalt oben
+- [ ] In `src/index.ts` registriert
+- [ ] Manuell auf einer veröffentlichten Staging-Seite geprüft: zwei Instanzen auf einer Seite und eine Instanz in einer CMS-Liste, die nachgeladen wird
+- [ ] Bei Schema-Änderung: SemVer-Major und Migrationsnotiz im Changelog

@@ -1,0 +1,112 @@
+---
+description: Verbindliches wl-Attribut-Schema (Namen, Werte, Rollen, Instanzen, Fehlerkanal) für alle Webflow-Utilities
+alwaysApply: true
+---
+
+# wl-Attribut-Schema
+
+Das Schema ist der öffentliche Vertrag gegenüber Designern und Kundenprojekten. Änderungen daran sind Breaking Changes.
+
+## Zwei Attributformen, keine dritte
+
+```html
+wl-<utility>="<rolle>"            <!-- Rollen-Marker, an Root und Sub-Elementen -->
+wl-<utility>-<option>="<wert>"    <!-- Option, ausschließlich am Root -->
+```
+
+- `<utility>`: genau ein Token, `[a-z]{3,12}`, kein Bindestrich. Deshalb `reveal`, nicht `in-view`.
+- `<option>`: kebab-case, darf mehrere Tokens haben (`feedback-duration`).
+- Parsing-Regel: erstes Segment nach `wl-` ist die Utility, alles danach ist der Optionsname.
+
+```html
+<!-- ✅ RICHTIG -->
+<div wl-count="root" wl-count-to="1200" wl-count-decimals="1">0</div>
+<div wl-reveal="root" wl-reveal-class="is-visible" wl-reveal-once="true"></div>
+
+<!-- ❌ FALSCH -->
+<div wlCountUp="1200"></div>                     <!-- camelCase -->
+<div data-wl-count-to="1200"></div>              <!-- data- Prefix -->
+<div fs-count-to="1200"></div>                   <!-- fremder Namespace -->
+<div wl-count-up-to="1200"></div>                <!-- Utility-Name mit Bindestrich -->
+<div wl-count="root" wl-count-config="to:1200"></div>  <!-- Options-String -->
+```
+
+## Rollen
+
+Jede Utility deklariert eine feste Rollenliste und hat immer `root`. Einelementige Utilities haben nur `root`.
+Rollenwerte sind einzelne kebab-case Tokens (`trigger`, `content`, `item`, `source`).
+
+```html
+<!-- ✅ RICHTIG: Rolle als Wert, ein Attributname pro Utility -->
+<div wl-accordion="root">
+  <div wl-accordion="item">
+    <button wl-accordion="trigger">Frage</button>
+    <div wl-accordion="content">Antwort</div>
+  </div>
+</div>
+
+<!-- ❌ FALSCH: Attribut pro Rolle, Instanznummer im Wert, Option am Sub-Element -->
+<div wl-accordion-root>
+  <button wl-accordion="trigger-2" wl-accordion-duration="300">Frage</button>
+</div>
+```
+
+## Optionen und Defaults
+
+- Optionen werden **nur am Root** gelesen. Ein Sub-Element mit Option ist ein Regelverstoß.
+- Genau zwei Wertquellen: Attribut am Root oder Code-Default der Utility. Keine Vererbung von Parents, keine globale Konfiguration am Script-Tag.
+- Maximal 6 Optionen pro Utility. Mehr heißt: die Utility macht zu viel und wird geteilt.
+- Elementbezogene Optionen referenzieren per 1-basiertem Index (`wl-accordion-initial="1"`), nie per Selektor.
+
+## Werte-Coercion (verbindlich)
+
+| Typ | Erlaubt | Ungültig führt zu |
+|---|---|---|
+| `num` | Klartext, Punkt als Dezimaltrenner: `1200`, `1.5` | Warnung + `wl-error` + Code-Default |
+| `ms` | ganze Millisekunden: `250` | wie `num` |
+| `bool` | ausschließlich `"true"` / `"false"` | Warnung + `wl-error` + Code-Default |
+| `str` | beliebiger Text, getrimmt | – |
+| `enum` | ein Wert aus der deklarierten Liste | Warnung + `wl-error` + Code-Default |
+| `list` | komma-getrennt, Einträge getrimmt: `a, b` | – |
+| `cls` | Klassennamen leerzeichen-getrennt wie in `class` | – |
+
+Fehlt eine Pflichtoption oder eine Pflichtrolle, initialisiert die Instanz **nicht**.
+
+## Instanzen
+
+Standard ist implizit: ein Sub-Element gehört zum nächsten Vorfahren mit `wl-<utility>="root"`.
+Damit funktionieren mehrere Instanzen pro Seite und CMS-Listen ohne Zutun. Keine Instanznummern in Attributwerten.
+
+Nur wenn ein Teil außerhalb des Roots im DOM liegt, greift der Escape-Hatch:
+
+```html
+<div wl-copy="root" wl-copy-id="pricing">Kopieren</div>
+<code wl-copy="source" wl-copy-for="pricing">hallo@studio.de</code>
+```
+
+## Reserviert für den Core
+
+| Attribut | Zweck |
+|---|---|
+| `wl-init` | leerzeichen-getrennte Liste initialisierter Utilities am Element, sichert Idempotenz |
+| `wl-error` | leerzeichen-getrennte Liste aus `<utility>:<code>`, im Designer-Inspector sichtbar |
+
+Utilities setzen oder lesen diese Attribute nie selbst, sondern nutzen Core-Helfer.
+
+## Fehlerkanal
+
+- „Nichts zu tun" (Utility kommt auf der Seite nicht vor) ist **still**.
+- Konfigurationsfehler ergeben `console.warn` **und** `wl-error` am betroffenen Element.
+- Warn-Format: `[wl:<utility>] "<attribut>" fehlt am Root. Instanz wird übersprungen.` plus das Element als zweites `console.warn`-Argument.
+- Vom Core erzeugte Codes: `missing-<option>`, `invalid-<option>`, `missing-<rolle>`, `duplicate-<rolle>`, `unknown-role`, `unknown-option`, `option-on-part`, `init-failed`.
+- Utility-eigene Codes sind kebab-case und in der Utility-README dokumentiert.
+
+```html
+<div wl-count="root" wl-error="count:missing-to">0</div>
+```
+
+## Events und öffentliche API
+
+- Events heißen `wl:<utility>:<aktion>`, werden am Root dispatcht, `bubbles: true`, `detail` enthält mindestens `{ root }`.
+- Öffentliche API ist ausschließlich `window.wl` mit `version`, `init(target?)`, `destroy(target?)`.
+- Eine Utility darf ohne jeden JS-Aufruf funktionieren. Ist ein JS-Aufruf nötig, ist das Design falsch.

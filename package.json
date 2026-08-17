@@ -1,0 +1,24 @@
+{
+  "name": "webflow-library",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Attributgesteuerte Verhaltens-Utilities für veröffentlichte Webflow-Seiten",
+  "packageManager": "pnpm@11.13.1",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "preversion": "pnpm check",
+    "version": "pnpm build && git add dist",
+    "postversion": "git push --follow-tags"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12",
+    "jsdom": "^27.4.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

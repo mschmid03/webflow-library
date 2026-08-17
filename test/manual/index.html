@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>wl-Utilities · manuelle Abnahme</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 46rem; }
+      section { border-top: 1px solid #ddd; padding: 1rem 0; }
+      .number { font-size: 2rem; font-weight: 700; }
+      .spacer { height: 90vh; }
+      code { background: #f3f3f3; padding: 0 .25rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Manuelle Abnahme</h1>
+    <p>Ersetzt keine Prüfung auf einer veröffentlichten Webflow-Seite, deckt aber Bootstrap, Observer und Fehlerkanal ab.</p>
+
+    <section>
+      <h2>count · start="load"</h2>
+      <div class="number" wl-count="root" wl-count-to="1200" wl-count-duration="1200" wl-count-separator="." wl-count-start="load">0</div>
+    </section>
+
+    <section>
+      <h2>count · Fehlerfall</h2>
+      <p>Erwartet <code>wl-error="count:missing-to"</code> am Element, kein <code>wl-init</code>.</p>
+      <div class="number" wl-count="root">Platzhalter</div>
+    </section>
+
+    <section>
+      <h2>count · nachgeladen (CMS-Simulation)</h2>
+      <button id="inject" type="button">Element einfügen</button>
+      <div id="target"></div>
+    </section>
+
+    <section>
+      <h2>count · start="visible"</h2>
+      <p>Erst nach dem Scrollen sichtbar, muss dann von 0 auf 99,5 laufen.</p>
+      <div class="spacer"></div>
+      <div class="number" wl-count="root" wl-count-to="99.5" wl-count-decimals="1">0</div>
+    </section>
+
+    <script src="../../dist/wl.min.js"></script>
+    <script>
+      document.getElementById('inject').addEventListener('click', () => {
+        const item = document.createElement('div');
+        item.className = 'number';
+        item.setAttribute('wl-count', 'root');
+        item.setAttribute('wl-count-to', '42');
+        item.setAttribute('wl-count-start', 'load');
+        item.setAttribute('wl-count-duration', '600');
+        item.textContent = '0';
+        document.getElementById('target').append(item);
+      });
+      document.addEventListener('wl:count:complete', (event) => {
+        console.log('complete', event.detail.value, event.detail.root);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,61 @@
+---
+description: Verbindlicher Accessibility-Mindeststandard für wl-Utilities (Tastatur, ARIA-States, Fokus, reduced-motion)
+globs: src/**
+alwaysApply: false
+---
+
+# A11y-Mindeststandard
+
+Gilt ab der ersten Utility. Nachträglich eingebaut ändert es die Attribut-API, deshalb ist es Teil der Definition of Done.
+
+## Tastatur
+
+- Ein Element mit Rolle `trigger` muss fokussierbar und mit Tastatur auslösbar sein.
+- Ist es kein natives `button` oder `a[href]`, setzt die Utility `tabindex="0"`, `role="button"` und behandelt `Enter` **und** `Space` (bei `Space` `preventDefault`, damit die Seite nicht scrollt).
+- Ist es ein natives `button`, wird **nichts** gesetzt: kein `role`, kein `tabindex`.
+
+```ts
+// ❌ FALSCH: nur Klick
+trigger.addEventListener('click', toggle);
+
+// ✅ RICHTIG
+ensureFocusable(trigger); // setzt tabindex/role nur bei nicht-nativen Elementen
+trigger.addEventListener('click', toggle);
+trigger.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+});
+```
+
+## Zustände
+
+- Auf/Zu spiegelt sich in `aria-expanded="true|false"` am Trigger, nicht nur in einer Klasse.
+- Steuert ein Trigger ein anderes Element, verbindet die Utility beide über `aria-controls` und eine per Core-Helfer generierte ID (`ensureId`). Bestehende IDs werden nie überschrieben.
+- Geschlossene Inhalte sind für Screenreader nicht erreichbar: `hidden` oder `display: none`, nicht nur `opacity: 0` oder Höhe 0.
+- Statusmeldungen („kopiert") gehen in eine additive sr-only Live-Region mit `aria-live="polite"`, nicht in ein `alert()` und nicht ausschließlich in eine sichtbare Klasse.
+
+## Fokus
+
+- Der Fokus wird nicht verschoben, außer die Utility ist explizit ein Overlay.
+- Keine Fokusfalle, kein `outline: none`, kein Entfernen von Fokus-Styles.
+- Ein Element, das gerade den Fokus hat, wird nicht versteckt. Vorher Fokus auf ein sinnvolles sichtbares Element geben.
+
+## Bewegung
+
+- Bei `matchMedia('(prefers-reduced-motion: reduce)').matches` wird der **Endzustand sofort** gesetzt: keine Animation, keine Interpolation, keine Verzögerung.
+- Das gilt auch für Zahlen-Animationen: der Zielwert steht direkt im DOM.
+- Die Abfrage läuft über den Core-Helfer `prefersReducedMotion()`, nicht über eine eigene `matchMedia`-Kopie.
+
+## Text und Zahlen
+
+- Animierte oder gesetzte Werte stehen als echter Textinhalt im DOM, damit Screenreader und Suchmaschinen den Endwert lesen.
+- Kein `aria-live` auf hochzählenden Zahlen: das erzeugt Dauergeplapper.
+- Rein dekorative Hilfselemente, die die Utility anlegt, bekommen `aria-hidden="true"`.
+
+## Prüfliste vor „fertig"
+
+- [ ] Mit `Tab` erreichbar, mit `Enter` und `Space` auslösbar
+- [ ] `aria-expanded` und `aria-controls` korrekt, IDs nicht überschrieben
+- [ ] Geschlossene Inhalte für Screenreader unsichtbar
+- [ ] Fokus bleibt sichtbar und wird nicht unbeabsichtigt verschoben
+- [ ] Mit aktivem „Bewegung reduzieren" sofort Endzustand
+- [ ] Endwerte als Textinhalt vorhanden, keine `aria-live`-Flut

@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Tag gegen package.json prüfen
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(jq -r .version package.json)"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag $TAG passt nicht zu package.json $PKG."
+            exit 1
+          fi
+
+      - run: pnpm check
+
+      - name: dist gegen Quellstand prüfen
+        run: |
+          if ! git diff --exit-code -- dist; then
+            echo "dist/ ist nicht aus dem aktuellen Quellstand gebaut. Lokal 'pnpm build' laufen lassen und committen."
+            exit 1
+          fi
+
+      - name: Release-Notes aus CHANGELOG.md lesen
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="$VERSION" '
+            $0 ~ "^## " v "([^0-9.]|$)" { found = 1; next }
+            found && /^## / { exit }
+            found
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "Kein Changelog-Abschnitt für $VERSION in CHANGELOG.md gefunden."
+            exit 1
+          fi
+          {
+            echo
+            echo '## Einbindung'
+            echo
+            echo '```html'
+            echo "<script src=\"https://cdn.jsdelivr.net/gh/${GITHUB_REPOSITORY}@${VERSION}/dist/wl.min.js\"></script>"
+            echo '```'
+          } >> release-notes.md
+
+      - name: GitHub-Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md dist/wl.min.js

@@ -1,0 +1,41 @@
+# Abhängigkeiten
+node_modules/
+.pnpm-store/
+
+# Achtung: dist/ wird bewusst NICHT ignoriert.
+# jsDelivr liefert dist/wl.min.js direkt aus dem Git-Tag aus.
+
+# Caches und Build-Zwischenstände
+.cache/
+.vite/
+.vitest/
+.turbo/
+*.tsbuildinfo
+
+# Test-Ergebnisse
+coverage/
+test-results/
+
+# von der Release-Action erzeugt
+release-notes.md
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Lokale Umgebung und Secrets
+.env
+.env.*
+!.env.example
+
+# Editor und Betriebssystem
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
