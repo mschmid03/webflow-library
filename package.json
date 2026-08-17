@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "check": "pnpm typecheck && pnpm test && pnpm build",
     "preversion": "pnpm check",
-    "version": "pnpm build && git add dist",
+    "version": "node scripts/changelog.mjs && pnpm build && git add dist",
     "postversion": "git push --follow-tags"
   },
   "devDependencies": {

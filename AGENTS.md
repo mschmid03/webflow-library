@@ -49,10 +49,13 @@ pnpm check       # alle drei, muss vor jedem Commit grün sein
 
 ## Release
 
-1. Abschnitt in `CHANGELOG.md` schreiben. Überschrift zwingend `## <version> — <datum>`, die Release-Action liest genau diesen Abschnitt.
+1. Abschnitt in `CHANGELOG.md` schreiben. Überschrift zwingend `## <version> — <YYYY-MM-DD>` mit der Version, die als nächstes entsteht.
 2. Diesen Stand committen. `pnpm version` verlangt ein sauberes Arbeitsverzeichnis.
-3. `pnpm version patch|minor|major`. Das erledigt Check, Build, `dist/` im Version-Commit, Tag und Push.
+3. `pnpm version patch|minor|major`. Das prüft den Changelog, baut, nimmt `dist/` in den Version-Commit, taggt und pusht.
 4. Stufe nicht raten: Attribut umbenannt oder Bedeutung geändert heißt Major mit Migrationsnotiz. Neue Utility oder neue Option heißt Minor. Reiner Bugfix heißt Patch.
+
+Bricht `pnpm version` wegen des Changelogs ab, ist noch kein Tag entstanden. Dann `git checkout package.json`, Abschnitt ergänzen, erneut starten.
+Ohne Quelländerung wird nicht releast: ein Tag, dessen Commit nur `package.json` und `dist/` anfasst, ist ein Fehler.
 
 Nie `dist/wl.min.js` per Hand editieren. Der Release-Workflow baut neu und bricht bei Abweichung ab.
 

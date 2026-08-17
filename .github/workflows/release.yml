@@ -43,15 +43,7 @@ jobs:
       - name: Release-Notes aus CHANGELOG.md lesen
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          awk -v v="$VERSION" '
-            $0 ~ "^## " v "([^0-9.]|$)" { found = 1; next }
-            found && /^## / { exit }
-            found
-          ' CHANGELOG.md > release-notes.md
-          if [ ! -s release-notes.md ]; then
-            echo "Kein Changelog-Abschnitt für $VERSION in CHANGELOG.md gefunden."
-            exit 1
-          fi
+          node scripts/changelog.mjs --notes > release-notes.md
           {
             echo
             echo '## Einbindung'
