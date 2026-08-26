@@ -5,6 +5,10 @@ und braucht hier eine Migrationsnotiz.
 
 Überschriften müssen dem Muster `## <version> — <datum>` folgen: `.github/workflows/release.yml` schneidet daraus die Release-Notes.
 
+## 0.5.0 — 2026-08-26
+
+- Utility `year`: setzt den Textinhalt eines Elements auf die aktuelle Jahreszahl (`wl-year="root"`).
+
 ## 0.4.0 — 2026-08-17
 
 Erste veröffentlichte Fassung. Die Tags `v0.2.0` und `v0.3.0` zeigen auf denselben Codestand und haben kein Release.
