@@ -20,27 +20,29 @@ Zero Dependencies, keine Webflow-Internals, kein injiziertes CSS.
 
 ## Wo was steht
 
-| Datei | Für wen |
-|---|---|
-| `docs/DESIGNER-GUIDE.md` | Designer: Script einbauen, Attribute setzen, Fehler finden |
-| `docs/CONCEPT.md` | Menschen, die wissen wollen warum es so gebaut ist |
-| `AGENTS.md` | Coding-Agenten: Einstieg und harte Grenzen |
-| `.cursor/rules/wl-attribute-schema.mdc` | verbindliches Attribut-Schema |
-| `.cursor/rules/wl-utility-authoring.mdc` | Dateistruktur, Contract, Definition of Done |
-| `.cursor/rules/wl-a11y.mdc` | A11y-Mindeststandard |
-| `src/utilities/<name>/README.md` | Referenz je Utility (Attribute, Defaults, Events, Fehlercodes) |
+| Datei                                    | Für wen                                                        |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `docs/DESIGNER-GUIDE.md`                 | Designer: Script einbauen, Attribute setzen, Fehler finden     |
+| `docs/CONCEPT.md`                        | Menschen, die wissen wollen warum es so gebaut ist             |
+| `AGENTS.md`                              | Coding-Agenten: Einstieg und harte Grenzen                     |
+| `.cursor/rules/wl-attribute-schema.mdc`  | verbindliches Attribut-Schema                                  |
+| `.cursor/rules/wl-utility-authoring.mdc` | Dateistruktur, Contract, Definition of Done                    |
+| `.cursor/rules/wl-a11y.mdc`              | A11y-Mindeststandard                                           |
+| `src/utilities/<name>/README.md`         | Referenz je Utility (Attribute, Defaults, Events, Fehlercodes) |
 
 ## Status
 
-Core und `count` sind gebaut, Bundle liegt bei 3,2 KB min+gzip.
+Core, `count`, `year` und `timespan` sind gebaut, Bundle liegt bei 3,5 KB min+gzip.
 Als nächste Utilities sind gesetzt: `accordion`, `copy` (Copy-to-clipboard), `reveal` (Klasse bei Sichtbarkeit).
 
-| Utility | Zustand | Referenz |
-|---|---|---|
-| `count` | fertig | `src/utilities/count/README.md` |
-| `accordion` | offen | – |
-| `copy` | offen | – |
-| `reveal` | offen | – |
+| Utility     | Zustand | Referenz                           |
+| ----------- | ------- | ---------------------------------- |
+| `count`     | fertig  | `src/utilities/count/README.md`    |
+| `year`      | fertig  | `src/utilities/year/README.md`     |
+| `timespan`  | fertig  | `src/utilities/timespan/README.md` |
+| `accordion` | offen   | –                                  |
+| `copy`      | offen   | –                                  |
+| `reveal`    | offen   | –                                  |
 
 ## Entwicklung
 
@@ -75,5 +77,5 @@ Der Tag-Push löst `.github/workflows/release.yml` aus. Der Workflow prüft, das
 Danach ist die URL sofort nutzbar. Tag-URLs behandelt jsDelivr als unveränderlich, ein Cache-Purge ist nicht nötig:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/mschmid03/webflow-library@0.2.0/dist/wl.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mschmid03/webflow-library@0.5.0/dist/wl.min.js"></script>
 ```
