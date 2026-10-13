@@ -58,8 +58,11 @@ export default defineUtility({
       }
 
       emit('start', { value: from });
-      const begin = performance.now();
+      // Startzeit aus dem ersten Frame-Zeitstempel, nicht aus performance.now(): sonst vergleicht step zwei Uhren,
+      // und ein Frame-Zeitstempel vor dem Startzeitpunkt ergibt negativen Fortschritt.
+      let begin = -1;
       const step = (now: number): void => {
+        if (begin < 0) begin = now;
         const progress = Math.min((now - begin) / duration, 1);
         if (progress < 1) {
           render(from + (to - from) * easeOutCubic(progress));

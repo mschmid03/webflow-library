@@ -5,6 +5,12 @@ und braucht hier eine Migrationsnotiz.
 
 Überschriften müssen dem Muster `## <version> — <datum>` folgen: `.github/workflows/release.yml` schneidet daraus die Release-Notes.
 
+## 0.6.1 — 2026-10-13
+
+- `count`: Die Animation misst die Zeit jetzt ab dem ersten Frame. Vorher konnte der erste Frame kurz unter den
+  Startwert springen. Der Release-Workflow von 0.5.0 und 0.6.0 ist am zugehörigen Test gescheitert, beide Tags haben
+  deshalb kein GitHub-Release.
+
 ## 0.6.0 — 2026-10-13
 
 - Utility `timespan`: richtet Zeitspannen wie `8:00 – 11:45` untereinander aus, indem alle Startzeiten
