@@ -5,6 +5,11 @@ und braucht hier eine Migrationsnotiz.
 
 Überschriften müssen dem Muster `## <version> — <datum>` folgen: `.github/workflows/release.yml` schneidet daraus die Release-Notes.
 
+## 0.6.0 — 2026-10-13
+
+- Utility `timespan`: richtet Zeitspannen wie `8:00 – 11:45` untereinander aus, indem alle Startzeiten
+  (`wl-timespan="start"`) im Root die Breite der breitesten bekommen (`wl-timespan="root"`). Keine Optionen.
+
 ## 0.5.0 — 2026-08-26
 
 - Utility `year`: setzt den Textinhalt eines Elements auf die aktuelle Jahreszahl (`wl-year="root"`).
