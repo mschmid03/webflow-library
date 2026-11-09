@@ -7,7 +7,7 @@ description: "Wissen über Marius' eigene webflow-library (mschmid03/webflow-lib
 
 <!-- Generiert von scripts/skill.mjs aus skill-src/SKILL.template.md und src/utilities/*/README.md. Nicht hier editieren. -->
 
-Eigene Library von Marius (Repo `mschmid03/webflow-library`, aktueller Stand **0.6.1**).
+Eigene Library von Marius (Repo `mschmid03/webflow-library`, aktueller Stand **0.6.2**).
 Sie liefert kleine Verhaltens-Utilities für **veröffentlichte** Webflow-Seiten. Designer setzen Custom Attributes
 im Designer, niemand schreibt Projekt-JavaScript. Das Attribut-Schema ist der öffentliche Vertrag.
 
@@ -16,7 +16,7 @@ im Designer, niemand schreibt Projekt-JavaScript. Das Attribut-Schema ist der ö
 Genau ein Script pro Site, in **Site settings → Custom code → Footer code**, Version gepinnt:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/mschmid03/webflow-library@0.6.1/dist/wl.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mschmid03/webflow-library@0.6.2/dist/wl.min.js"></script>
 ```
 
 - Nie `@latest`, nie ohne Version. Sonst ändert sich ein fertiges Projekt ohne Zutun.
