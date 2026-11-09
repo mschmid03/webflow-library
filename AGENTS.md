@@ -44,8 +44,22 @@ pnpm install
 pnpm typecheck   # tsc --noEmit
 pnpm test        # vitest run (jsdom)
 pnpm build       # esbuild -> dist/wl.min.js
-pnpm check       # alle drei, muss vor jedem Commit grün sein
+pnpm check       # alle drei plus Skill-Prüfung, muss vor jedem Commit grün sein
+pnpm skill       # Claude-Skill unter skill/webflow-library/ neu erzeugen
 ```
+
+## Claude-Skill
+
+`skill/webflow-library/` ist ein Claude-Skill, der das Wissen über die Library in Kundenprojekte trägt.
+Er wird **generiert** und nie von Hand editiert. Quellen: `skill-src/SKILL.template.md` (Rahmen, Regeln, Fehlersuche),
+`src/index.ts` (registrierte Utilities), `src/utilities/*/README.md` (Referenzen), `CHANGELOG.md` (Spalte „seit"),
+`package.json` (Version im Einbau-Snippet).
+
+- Ändert sich eine dieser Quellen, `pnpm skill` laufen lassen und `skill/` im selben Commit mitnehmen. `pnpm check` bricht sonst ab.
+- Ändert sich Wissen, das nicht aus den Quellen generiert wird (Grammatik, Fehlercodes des Cores, Gate, Einbindung, `window.wl`),
+  wird `skill-src/SKILL.template.md` im selben Commit angepasst. Das prüft keine Maschine, das ist Pflicht des Autors.
+- `pnpm version` erzeugt den Skill mit der neuen Versionsnummer und nimmt `skill/` in den Version-Commit.
+- `pnpm skill:link` verlinkt den Skill nach `~/.claude/skills/webflow-library`. Einmal pro Rechner, danach ist jeder Stand des Repos sofort aktiv.
 
 ## Release
 

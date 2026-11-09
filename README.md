@@ -29,6 +29,7 @@ Zero Dependencies, keine Webflow-Internals, kein injiziertes CSS.
 | `.cursor/rules/wl-utility-authoring.mdc` | Dateistruktur, Contract, Definition of Done                    |
 | `.cursor/rules/wl-a11y.mdc`              | A11y-Mindeststandard                                           |
 | `src/utilities/<name>/README.md`         | Referenz je Utility (Attribute, Defaults, Events, Fehlercodes) |
+| `skill/webflow-library/`                 | Claude-Skill, generiert mit `pnpm skill`, lokal aktiv über `pnpm skill:link` |
 
 ## Status
 

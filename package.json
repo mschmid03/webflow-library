@@ -10,9 +10,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "skill": "node scripts/skill.mjs",
+    "skill:link": "node scripts/skill-link.mjs",
+    "check": "pnpm typecheck && pnpm test && pnpm build && node scripts/skill.mjs --check",
     "preversion": "pnpm check",
-    "version": "node scripts/changelog.mjs && pnpm build && git add dist",
+    "version": "node scripts/changelog.mjs && pnpm build && node scripts/skill.mjs && git add dist skill",
     "postversion": "git push --follow-tags"
   },
   "devDependencies": {
