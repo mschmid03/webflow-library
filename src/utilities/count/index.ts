@@ -3,6 +3,12 @@ import { defineUtility, ms, num, oneOf, prefersReducedMotion, required, str } fr
 /** Sichtbarkeitsschwelle für `start="visible"`. Absichtlich keine Option: hält die Utility bei 6 Optionen. */
 const VISIBILITY_THRESHOLD = 0.25;
 
+/**
+ * Vorlauf, ab dem bei `start="visible"` der Startwert gesetzt wird. Bis dahin bleibt der Text aus dem HTML stehen,
+ * damit Screenreader, Linkvorschauen und Suchmaschinen den echten Wert lesen und nicht den Startwert.
+ */
+const PRIME_MARGIN = '50% 0px 50% 0px';
+
 function easeOutCubic(progress: number): number {
   return 1 - (1 - progress) ** 3;
 }
@@ -48,15 +54,18 @@ export default defineUtility({
       emit('complete', { value: to });
     };
 
+    const animates = (): boolean => duration > 0 && !prefersReducedMotion();
+
     const run = (): void => {
       if (started) return;
       started = true;
 
-      if (duration <= 0 || prefersReducedMotion()) {
+      if (!animates()) {
         finish();
         return;
       }
 
+      render(from);
       emit('start', { value: from });
       // Startzeit aus dem ersten Frame-Zeitstempel, nicht aus performance.now(): sonst vergleicht step zwei Uhren,
       // und ein Frame-Zeitstempel vor dem Startzeitpunkt ergibt negativen Fortschritt.
@@ -75,19 +84,32 @@ export default defineUtility({
       frame = requestAnimationFrame(step);
     };
 
-    render(from);
-
     if (start === 'load' || typeof IntersectionObserver === 'undefined') {
       run();
     } else {
+      // Zwei Stufen: kurz vor dem Viewport den Startwert setzen, bei 25 % Sichtbarkeit animieren.
+      // So bleibt der echte Wert im DOM, solange das Element weit weg ist, und der Sprung auf den Startwert ist nicht zu sehen.
+      const watch = (): void => {
+        observer = new IntersectionObserver(
+          (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) return;
+            observer?.disconnect();
+            observer = null;
+            run();
+          },
+          { threshold: VISIBILITY_THRESHOLD },
+        );
+        observer.observe(root);
+      };
       observer = new IntersectionObserver(
         (entries) => {
           if (!entries.some((entry) => entry.isIntersecting)) return;
           observer?.disconnect();
           observer = null;
-          run();
+          if (animates()) render(from);
+          watch();
         },
-        { threshold: VISIBILITY_THRESHOLD },
+        { rootMargin: PRIME_MARGIN },
       );
       observer.observe(root);
     }

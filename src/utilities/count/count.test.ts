@@ -137,31 +137,96 @@ describe('Verhalten', () => {
     expect(detail).toEqual({ root, value: 7 });
   });
 
-  it('startet erst bei Sichtbarkeit, wenn start auf visible steht', () => {
-    stubReducedMotion(true);
-    const observed: Element[] = [];
-    const fake: { notify?: (entries: Partial<IntersectionObserverEntry>[]) => void } = {};
-    vi.stubGlobal(
-      'IntersectionObserver',
-      class {
-        constructor(callback: (entries: Partial<IntersectionObserverEntry>[]) => void) {
-          fake.notify = callback;
-        }
-        observe(element: Element) {
-          observed.push(element);
-        }
-        disconnect() {}
-      },
-    );
+  describe('start="visible"', () => {
+    type FakeObserver = {
+      options: IntersectionObserverInit | undefined;
+      observed: Element[];
+      disconnected: boolean;
+      notify: (entries: Partial<IntersectionObserverEntry>[]) => void;
+    };
+    let observers: FakeObserver[];
 
-    const root = mount('<div wl-count="root" wl-count-to="9">0</div>');
-    scan(document.body);
+    beforeEach(() => {
+      observers = [];
+      vi.stubGlobal(
+        'IntersectionObserver',
+        class {
+          private readonly fake: FakeObserver;
+          constructor(
+            callback: (entries: Partial<IntersectionObserverEntry>[]) => void,
+            options?: IntersectionObserverInit,
+          ) {
+            this.fake = { options, observed: [], disconnected: false, notify: callback };
+            observers.push(this.fake);
+          }
+          observe(element: Element) {
+            this.fake.observed.push(element);
+          }
+          disconnect() {
+            this.fake.disconnected = true;
+          }
+        },
+      );
+    });
 
-    expect(observed).toEqual([root]);
-    expect(root.textContent).toBe('0');
+    const active = (): FakeObserver => {
+      const current = observers.filter((observer) => !observer.disconnected);
+      expect(current).toHaveLength(1);
+      return current[0] as FakeObserver;
+    };
 
-    fake.notify?.([{ isIntersecting: true }]);
-    expect(root.textContent).toBe('9');
+    it('lässt den Text aus dem HTML stehen, solange das Element weit weg ist', () => {
+      stubReducedMotion(false);
+      const root = mount('<div wl-count="root" wl-count-to="1200" wl-count-separator=".">1.200</div>');
+      scan(document.body);
+
+      expect(active().observed).toEqual([root]);
+      expect(active().options?.rootMargin).toBeTruthy();
+      expect(root.textContent).toBe('1.200');
+
+      active().notify([{ isIntersecting: false }]);
+      expect(root.textContent).toBe('1.200');
+    });
+
+    it('setzt den Startwert erst kurz vor dem Viewport und animiert bei Sichtbarkeit', async () => {
+      stubReducedMotion(false);
+      const root = mount('<div wl-count="root" wl-count-to="9" wl-count-duration="30">9</div>');
+      const completed = vi.fn();
+      root.addEventListener('wl:count:complete', completed);
+      scan(document.body);
+
+      active().notify([{ isIntersecting: true }]);
+      expect(root.textContent).toBe('0');
+      expect(active().options?.threshold).toBe(0.25);
+      expect(completed).not.toHaveBeenCalled();
+
+      active().notify([{ isIntersecting: true }]);
+      await vi.waitFor(() => expect(completed).toHaveBeenCalledTimes(1));
+      expect(root.textContent).toBe('9');
+    });
+
+    it('springt bei reduzierter Bewegung nie auf den Startwert', () => {
+      stubReducedMotion(true);
+      const root = mount('<div wl-count="root" wl-count-to="9">9</div>');
+      scan(document.body);
+
+      active().notify([{ isIntersecting: true }]);
+      expect(root.textContent).toBe('9');
+
+      active().notify([{ isIntersecting: true }]);
+      expect(root.textContent).toBe('9');
+    });
+
+    it('trennt beim Abräumen den aktiven Observer', () => {
+      stubReducedMotion(false);
+      mount('<div wl-count="root" wl-count-to="9">9</div>');
+      scan(document.body);
+      active().notify([{ isIntersecting: true }]);
+
+      destroy(document.body);
+
+      expect(observers.every((observer) => observer.disconnected)).toBe(true);
+    });
   });
 });
 

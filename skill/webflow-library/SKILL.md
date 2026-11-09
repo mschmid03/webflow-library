@@ -57,7 +57,7 @@ Attribute führen zu `wl-error="<utility>:unknown-option"` bzw. `unknown-role`.
 Zählt den Textinhalt eines Elements von einem Startwert auf einen Zielwert hoch.
 
 ```html
-<div wl-count="root" wl-count-to="1200" wl-count-duration="1600" wl-count-separator=".">0</div>
+<div wl-count="root" wl-count-to="1200" wl-count-duration="1600" wl-count-separator=".">1.200</div>
 ```
 
 ### `timespan`

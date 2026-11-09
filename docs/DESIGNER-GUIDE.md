@@ -35,7 +35,8 @@ An einem Text-Element:
 | `wl-count-to` | `1200` |
 | `wl-count-duration` | `1600` |
 
-Der Text im Element kann `0` sein — die Utility überschreibt ihn beim Hochzählen.
+Schreib als Text im Element den **Zielwert** (`1200`), nicht `0`. Diesen Text lesen Google, Screenreader und Linkvorschauen.
+Die Utility setzt den Startwert erst kurz bevor das Element ins Bild scrollt und zählt dann hoch.
 
 ## 4. Regeln, die dir Ärger ersparen
 

@@ -5,6 +5,13 @@ und braucht hier eine Migrationsnotiz.
 
 Überschriften müssen dem Muster `## <version> — <datum>` folgen: `.github/workflows/release.yml` schneidet daraus die Release-Notes.
 
+## 0.6.2 — 2026-11-09
+
+- `count`: Der Startwert wird bei `wl-count-start="visible"` erst gesetzt, wenn sich das Element dem Viewport auf eine
+  halbe Viewporthöhe nähert. Bis dahin bleibt der Text aus dem HTML stehen, damit Suchmaschinen, Screenreader und
+  Linkvorschauen den echten Wert lesen. Bei reduzierter Bewegung oder `wl-count-duration="0"` wird der Startwert nie gesetzt.
+  Doku: Im Root steht der Zielwert, nicht `0`.
+
 ## 0.6.1 — 2026-10-13
 
 - `count`: Die Animation misst die Zeit jetzt ab dem ersten Frame. Vorher konnte der erste Frame kurz unter den

@@ -75,7 +75,7 @@ Ausdrücklich **keine** Utility: Third-Party-Wrapper (Cookie-Banner, Analytics, 
 **Count-up.** Rollen: `root`. Optionen: `to` (Pflicht), `from` (0), `duration` (1200), `decimals` (0), `separator` (keiner), `start` (`visible|load`).
 
 ```html
-<div wl-count="root" wl-count-to="1200" wl-count-duration="1600" wl-count-separator=".">0</div>
+<div wl-count="root" wl-count-to="1200" wl-count-duration="1600" wl-count-separator=".">1.200</div>
 ```
 
 Bei reduzierter Bewegung steht sofort `1.200` da. Der Endwert ist echter Textinhalt, kein `aria-live`-Gestottere.

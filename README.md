@@ -8,7 +8,7 @@ Designer setzen Custom Attributes im Designer, niemand schreibt Projekt-JavaScri
 <script src="https://cdn.jsdelivr.net/gh/mschmid03/webflow-library@0.5.0/dist/wl.min.js"></script>
 
 <!-- Dann am Element, hier: Zahl auf 1200 hochzählen -->
-<div wl-count="root" wl-count-to="1200" wl-count-duration="1600">0</div>
+<div wl-count="root" wl-count-to="1200" wl-count-duration="1600">1200</div>
 ```
 
 ## Idee in vier Sätzen
